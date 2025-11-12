@@ -3,11 +3,11 @@ title: "Lead IQ Report"
 author: "Mahfuza Haque Mahi"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
+  word_document: default
+  pdf_document: default
   html_document:
     toc: true
     df_print: paged
-  word_document: default
-  pdf_document: default
 ---
 
 ```{r, warning = F, message = F, include = F,  echo = F}
@@ -95,12 +95,6 @@ caption = "IQ summary statistics by smelter proximity"
 ```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```
 
-```{bash}
-git add Reports/lead_iq_report.Rmd Reports/lead_iq_report.html Reports/lead_iq_report.pdf Reports/lead_iq_report.docx
-
-git commit -m "HW 02 report - update to remove 999 outlier"
-git push
 
 
-```
 
