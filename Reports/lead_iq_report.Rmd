@@ -1,0 +1,95 @@
+---
+title: "Lead IQ Report"
+author: "Mahfuza Haque Mahi"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+  word_document: default
+  pdf_document: default
+---
+
+```{r, warning = F, message = F, include = F,  echo = F}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+required_pkgs <- c("tidyverse","here","knitr","gtsummary")
+to_install <- setdiff(required_pkgs, rownames(installed.packages()))
+if (length(to_install)) install.packages(to_install, quiet = TRUE)
+lapply(required_pkgs, library, character.only = TRUE)
+```
+
+**Data**
+
+We analyze the CDC "lead-iq-01.csv" dataset, which contains information on 124 children aged 3–15 years who lived at varying distances from a lead smelter in El Paso, Texas.
+
+The dataset includes two variables:
+
+Smelter - indicates whether the child lived Near (within 1 mile) or Far (more than 1 mile) from the lead smelter.
+
+IQ – the child’s score on the Wechsler Intelligence Scale for Children (WISC), a standardized measure of cognitive ability.
+
+The goal of this analysis is to compare IQ levels between children who lived near the smelter and those who lived farther away, to explore whether proximity to the smelter (and potential lead exposure) is associated with lower IQ scores.
+
+```{r,  echo = F}
+# Read raw data from DataRaw/
+lead_raw <- readr::read_csv(here::here("DataRaw", "lead-iq-01.csv"), show_col_types = FALSE)
+
+lead <- lead_raw |>
+  mutate(
+    Smelter = factor(Smelter, levels = c("Far","Near")),
+    IQ = suppressWarnings(as.numeric(IQ))
+  )
+
+stopifnot(all(c("Smelter","IQ") %in% names(lead)))
+summary(lead)
+```
+
+**Descriptives**
+
+Overall mean IQ is `r round(mean(lead$IQ, na.rm = TRUE), 1)`.  
+Children **Near** the smelter have mean IQ `r round(mean(lead$IQ[lead$Smelter=="Near"], na.rm=TRUE), 1)`, while those **Far** have mean IQ `r round(mean(lead$IQ[lead$Smelter=="Far"], na.rm=TRUE), 1)`.
+
+**Graph: IQ by smelter status**
+
+```{r,  echo = F}
+ggplot(lead, aes(x = Smelter, y = IQ)) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(width = 0.12, alpha = 0.6) +
+  labs(x = "Lived within 1 mile of smelter?", y = "IQ (WISC)",
+       title = "IQ by smelter proximity") +
+  theme_minimal(base_size = 13)
+```
+
+
+**Interpretation:**
+
+Boxplots and jittered points show the IQ distribution by proximity.
+We see `r ifelse(mean(lead$IQ[lead$Smelter=="Near"]) < mean(lead$IQ[lead$Smelter=="Far"]),
+                 "lower", "higher")` average IQ among children living Near compared with those Far.
+
+**Table: summary by group**
+```{r, echo = F}
+tbl <- lead |>
+group_by(Smelter) |>
+summarise(
+n = dplyr::n(),
+mean_IQ = mean(IQ, na.rm = TRUE),
+sd_IQ   = sd(IQ, na.rm = TRUE),
+median_IQ = median(IQ, na.rm = TRUE),
+q1 = quantile(IQ, 0.25, na.rm = TRUE),
+q3 = quantile(IQ, 0.75, na.rm = TRUE)
+)
+
+knitr::kable(
+tbl,
+digits = c(0,0,1,1,1,1,1),
+caption = "IQ summary statistics by smelter proximity"
+)
+```
+
+**Interpretation:** The table summarizes center and spread of IQ within each group.Children living near the smelter (n = 57) had a slightly lower mean IQ (89.2 ± 12.2) compared with those living far from the smelter (n = 67, mean = 92.7 ± 16.0). Median IQ values and interquartile ranges also suggest slightly lower central tendency and somewhat narrower variability among the Near group.
+
+\newpage
+## Code Appendix 
+```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
