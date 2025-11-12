@@ -37,7 +37,8 @@ lead_raw <- readr::read_csv(here::here("DataRaw", "lead-iq-01.csv"), show_col_ty
 lead <- lead_raw |>
   mutate(
     Smelter = factor(Smelter, levels = c("Far","Near")),
-    IQ = suppressWarnings(as.numeric(IQ))
+    IQ = suppressWarnings(as.numeric(IQ)),
+    IQ = ifelse(IQ == 999, 99, IQ) # correction per PI conversation
   )
 
 stopifnot(all(c("Smelter","IQ") %in% names(lead)))
@@ -93,3 +94,13 @@ caption = "IQ summary statistics by smelter proximity"
 ## Code Appendix 
 ```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```
+
+```{bash}
+git add Reports/lead_iq_report.Rmd Reports/lead_iq_report.html Reports/lead_iq_report.pdf Reports/lead_iq_report.docx
+
+git commit -m "HW 02 report - update to remove 999 outlier"
+git push
+
+
+```
+
